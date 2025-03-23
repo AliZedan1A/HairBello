@@ -1,0 +1,259 @@
+﻿@page "/aboutus"
+
+@using Domain.DataTransfareObject
+@using ClientSide.Services.InterFace
+@using Domain.DatabaseModels
+@inject IBarberService BarberService
+
+<style>
+    /* الحاوية العامة */
+    .about-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 1rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        direction: rtl;
+        text-align: center;
+    }
+
+    /* الصورة الرئيسية للمحل */
+    .main-image {
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        margin-bottom: 1rem;
+    }
+
+    /* بطاقة معلومات المحل */
+    .shop-info {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.8s ease-in-out;
+    }
+
+        .shop-info h2 {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+
+    .shop-details {
+        text-align: left;
+        margin: 0.5rem 0;
+        font-size: 0.95rem;
+        color: #555;
+        line-height: 1.4;
+    }
+
+        .shop-details p {
+            margin: 0.3rem 0;
+        }
+    /* صف الأيقونات */
+    .icon-row {
+        margin-top: 0.5rem;
+    }
+
+        .icon-row img {
+            width: 32px;
+            height: 32px;
+            margin: 0 0.5rem;
+        }
+    /* زر رابط Waze */
+    .waze-button {
+        display: inline-block;
+        background-color: #0a84ff;
+        color: #fff;
+        padding: 0.6rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.95rem;
+        margin-top: 1rem;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+        .waze-button:hover {
+            background-color: #006fce;
+            transform: scale(1.05);
+        }
+    /* قائمة الحلاقين - بطاقات */
+    .barber-list {
+        margin: 1rem 0;
+    }
+
+    .barber-card {
+        display: inline-block;
+        background-color: #0078D7;
+        color: #fff;
+        padding: 0.8rem 1.2rem;
+        border-radius: 6px;
+        margin: 0.3rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, background-color 0.3s ease;
+        font-size: 0.95rem;
+    }
+
+        .barber-card:hover {
+            transform: scale(1.05);
+            background-color: #005fa3;
+        }
+    /* جدول المواعيد */
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+        .schedule-table th, .schedule-table td {
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .schedule-table th {
+            background-color: #f2f2f2;
+        }
+    /* حقوق المبرمج */
+    .developer-rights {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #999;
+        margin-top: 1rem;
+    }
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+</style>
+
+<div class="about-container">
+    <!-- صورة رئيسية للمحل -->
+    <img src="Image/HelloBelloImage.jpg" alt="صورة المحل" class="main-image" />
+
+    <!-- بطاقة معلومات المحل -->
+    <div class="shop-info">
+        <h2>محلقة HairBello</h2>
+        <div class="shop-details">
+            <p><strong>العنوان:</strong> كفر مندا ,شارع السلام </p>
+            <p><strong>صاحب المحل:</strong> امير</p>
+            <p><strong>رقم الهاتف:</strong> 50-446-6866</p>
+        </div>
+        <div class="icon-row">
+            <!-- أيقونات جديدة تمثل أدوات الحلاقة -->
+            <img src="https://cdn-icons-png.flaticon.com/512/3173/3173680.png" alt="مقص" class="icon" />
+            <img src="https://cdn-icons-png.flaticon.com/512/3173/3173672.png" alt="موس" class="icon" />
+            <img src="https://cdn-icons-png.flaticon.com/512/3173/3173675.png" alt="مشط" class="icon" />
+        </div>
+        <!-- زر رابط Waze -->
+        <a class="waze-button" href="https://ul.waze.com/ul?ll=32.80903434,35.26773548&navigate=yes&zoom=16" target="_blank">
+            افتح الموقع في Waze
+        </a>
+    </div>
+
+    <!-- قائمة الحلاقين كبطاقات -->
+    <div class="barber-list">
+        <h3>اختار الحلاق لعرض مواعيد عمله:</h3>
+        @if (Barbers != null && Barbers.Any())
+        {
+            @foreach (var barber in Barbers)
+            {
+                <div class="barber-card" @onclick="@(() => SelectBarber(barber.Id))">
+                    @barber.Name
+                </div>
+            }
+        }
+        else
+        {
+            <p>جاري تحميل قائمة الحلاقين...</p>
+        }
+    </div>
+
+    <!-- عرض جدول مواعيد الحلاق المختار -->
+    @if (SelectedBarber != null)
+    {
+        <h4>جدول مواعيد الحلاق: @SelectedBarber.Name</h4>
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>اليوم</th>
+                    <th>من الساعة</th>
+                    <th>إلى الساعة</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (SelectedBarber.BarberSchedules != null && SelectedBarber.BarberSchedules.Any())
+                {
+                    @foreach (var schedule in SelectedBarber.BarberSchedules)
+                    {
+                        <tr>
+                            <td>@TranslateDay(schedule.DayName)</td>
+                            <td>@schedule.StartHour.ToString(@"hh\:mm")</td>
+                            <td>@schedule.EndHour.ToString(@"hh\:mm")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3">لا يوجد جدول مواعيد مسجل لهذا الحلاق.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- حقوق المبرمج -->
+    <div class="developer-rights">
+        &copy; حقوق المبرمج: علي زيدان
+    </div>
+</div>
+
+@code {
+    private List<BarberModel>? Barbers;
+    private BarberModel? SelectedBarber;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // جلب قائمة الحلاقين من الـ API
+        var result = await BarberService.GetBarberListAsync();
+        if (result.IsSucceeded && result.Value != null)
+        {
+            Barbers = result.Value;
+        }
+        else
+        {
+            Barbers = new List<BarberModel>();
+        }
+    }
+
+    private void SelectBarber(int barberId)
+    {
+        SelectedBarber = Barbers?.FirstOrDefault(b => b.Id == barberId);
+    }
+
+    private string TranslateDay(string day)
+    {
+        return day.ToLower() switch
+        {
+            "sunday" => "الأحد",
+            "monday" => "الإثنين",
+            "tuesday" => "الثلاثاء",
+            "wednesday" => "الأربعاء",
+            "thursday" => "الخميس",
+            "friday" => "الجمعة",
+            "saturday" => "السبت",
+            _ => day
+        };
+    }
+}

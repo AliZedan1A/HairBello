@@ -1,0 +1,156 @@
+﻿/* استيراد خط عربي - إن رغبت بذلك */
+/* يمكنك تغييره لأي خط آخر، أو حذفه إن لم ترد استعماله */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+body {
+    overflow-x: hidden; /* يمنع التمرير الأفقي */
+    margin: 0;
+    padding: 0;
+    font-family: 'Tajawal', sans-serif; /* أو استعمل أي خط آخر */
+}
+
+/*********************************************
+ * Navbar Container
+ *********************************************/
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* تدرج لوني من الأسود إلى درجة أخرى */
+    background: linear-gradient(90deg, #000000 0%, #1c1c1c 100%);
+    color: #ffffff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    position: sticky; /* يمكنك استخدام fixed أيضاً */
+    top: 0;
+    z-index: 1000;
+}
+
+/*********************************************
+ * Logo Section
+ *********************************************/
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .navbar-logo img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+.navbar-title {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/*********************************************
+ * Menu Toggle (Hamburger) - for mobile
+ *********************************************/
+.menu-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: none; /* سنظهره فقط عند الشاشات الصغيرة */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 24px;
+    outline: none;
+    padding: 0;
+}
+
+    .menu-toggle .bar {
+        width: 100%;
+        height: 3px;
+        background-color: #fff;
+        transition: all 0.3s;
+    }
+
+/*********************************************
+ * Navbar Links
+ *********************************************/
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.3s ease-in-out;
+}
+
+    /* كل رابط */
+    .navbar-links a {
+        color: #fff;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 500;
+        position: relative;
+        transition: color 0.2s;
+    }
+
+        /* تأثير هوفر مع خط أسفل الرابط */
+        .navbar-links a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            width: 0;
+            height: 2px;
+            background-color: var(--accent-color, #6a3dd9);
+            transition: width 0.3s;
+        }
+
+        .navbar-links a:hover::after {
+            width: 100%;
+        }
+
+        .navbar-links a:hover {
+            color: var(--accent-color, #6a3dd9);
+        }
+
+/*********************************************
+ * Welcome Text (لإظهار رقم الهاتف)
+ *********************************************/
+.welcome-text {
+    color: #fff;
+    margin-right: 8px;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/*********************************************
+ * Responsive Design
+ * إخفاء القائمة الأساسية على الشاشات الضيقة
+ * واعتماد القائمة القابلة للطي (Hamburger).
+ *********************************************/
+@media (max-width: 768px) {
+    /* نخفي قائمة الروابط الأساسية */
+    .navbar-links {
+        position: absolute;
+        top: 60px; /* أسفل الشريط */
+        right: 0;
+        background: #1c1c1c; /* نفس خلفية الشريط (أو قريب منها) */
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 20px;
+        transform: translateX(100%); /* مخفية خارج الشاشة */
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+        border-radius: 8px 0 0 8px;
+        width: 200px;
+    }
+
+        /* عند تفعيل القائمة (active) نجعلها تظهر */
+        .navbar-links.active {
+            transform: translateX(0%);
+        }
+
+    /* نظهر زر الهامبرغر */
+    .menu-toggle {
+        display: flex;
+    }
+}

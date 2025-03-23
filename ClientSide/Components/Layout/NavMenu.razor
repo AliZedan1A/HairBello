@@ -1,0 +1,78 @@
+﻿@using ClientSide.Services.Class
+@using ClientSide.Services.InterFace
+@using Microsoft.AspNetCore.Components.Routing
+@inject PhoneNumberService PhoneService
+@inject IUserService _userservice
+
+<nav class="navbar">
+    <div class="navbar-logo">
+        <img src="Image/logo.jpg" alt="HB Logo" />
+        <span class="navbar-title">Hair Bello</span>
+    </div>
+
+    <!-- زر القائمة (يظهر في الجوال) -->
+    <button class="menu-toggle" @onclick="ToggleMenu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </button>
+
+    <!-- الروابط الرئيسية -->
+    <div class="navbar-links @(isMenuOpen ? "active" : "")">
+        <NavLink href="/" Match="NavLinkMatch.All">الرئيسية</NavLink>
+        <NavLink href="/aboutus">عن المحلقة</NavLink>
+
+        @* التحقق من رقم الهاتف *@
+        @if (IsLoggedIn)
+        {
+            <span class="welcome-text">مرحباً: @phoneNumber</span>
+            @if (IsAdmin)
+            { 
+                <NavLink href="/admin">لوحة الإدارة</NavLink>
+            } 
+        } 
+    </div>
+</nav>
+
+@code {
+    private string? phoneNumber;
+    private bool isMenuOpen = false;
+
+    // إن كان الرقم ليس فارغًا => المستخدم مُسجّل دخول
+    private bool IsLoggedIn  = false;
+
+    // مثال: إذا كان الرقم يساوي "admin" => المستخدم أدمن
+    // (يمكنك استبدال المنطق أو ربطه بقائمة أدمن فعليًا)
+    private bool IsAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        phoneNumber = PhoneService.GetPhoneNumber();
+        if (phoneNumber is null)
+        {
+            IsLoggedIn = false;
+            IsAdmin = false;
+        }
+        else
+        {
+            IsLoggedIn = true;
+            var res = await _userservice.GetConfig();
+            if(res.IsSucceeded&&res.Value.AdminPhonNumber == phoneNumber)
+            {
+                IsAdmin = true;
+            }
+            else
+            {
+                IsAdmin = false;
+            }
+        }
+    } 
+
+      
+    
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+}

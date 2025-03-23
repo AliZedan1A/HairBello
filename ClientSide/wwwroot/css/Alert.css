@@ -1,0 +1,193 @@
+﻿/*********************************************
+ * Alert Container
+ *********************************************/
+.alert-container {
+    position: fixed;
+    /* لتكون المسافة مريحة من الأعلى (10% من ارتفاع الصفحة) */
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    margin: 0;
+    padding: 0;
+}
+
+/*********************************************
+ * Main Alert Box
+ *********************************************/
+.custom-alert {
+    /* خلفية سوداء */
+    background-color: #000;
+    /* لون النص أبيض */
+    color: #fff;
+    /* حد عريض بلون وردي مميز (يمكنك تغييره) */
+    border: 4px solid #E91E63;
+    /* حجم مناسب للهواتف: نعتمد 90% من العرض ونحد أقصى للعرض */
+    width: 90%;
+    max-width: 300px;
+    /* ارتفاع وسك رول عند الحاجة */
+    max-height: 220px;
+    overflow-y: auto;
+    word-wrap: break-word;
+    /* تنسيق عام */
+    position: relative;
+    margin: 0 auto; /* توسيط أفقي */
+    padding: 16px 40px 16px 20px; /* مساحة إضافية للزر */
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    /* تأثير ظلال خلفي */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+    /* تأثير ظهور (Fade-In) */
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    animation: custom-alert-fade-in 0.8s forwards ease-in-out, subtle-wiggle 4s infinite ease-in-out alternate, border-pulse 2s infinite ease-in-out;
+    /* شريط التقدم سيضاف عبر ::after */
+}
+
+    .custom-alert.info {
+        /* لو أردت تمييز نوع info بلون حد مختلف، ضعه هنا */
+        /* border-color: #E91E63; افتراضي */
+    }
+
+    .custom-alert.success {
+        /* لو أردت تمييز نوع success بلون مختلف */
+    }
+
+    .custom-alert.error {
+        /* لو أردت تمييز نوع error بلون مختلف */
+    }
+
+/*********************************************
+ * زر الإغلاق (X)
+ *********************************************/
+.close-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+    .close-button:hover {
+        opacity: 1;
+    }
+
+/*********************************************
+ * Hide Alert (Fade-Out)
+ *********************************************/
+.custom-alert.hide-alert {
+    animation: none; /* لإيقاف أي حركات أخرى */
+    opacity: 1;
+    transform: scale(1);
+    /* الآن نضيف التلاشي */
+    animation: custom-alert-fade-out 0.8s forwards ease-in-out;
+}
+
+/*********************************************
+ * Progress Bar (باستخدام اللون الوردي دائماً)
+ *********************************************/
+.custom-alert::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 0;
+    background-color: #E91E63;
+    animation: progress-animate 5s linear forwards;
+}
+
+/*********************************************
+ * Keyframes: Fade-In
+ *********************************************/
+@keyframes custom-alert-fade-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/*********************************************
+ * Keyframes: Fade-Out
+ *********************************************/
+@keyframes custom-alert-fade-out {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+/*********************************************
+ * Keyframes: Progress Bar (Width من 0% لـ 100%)
+ *********************************************/
+@keyframes progress-animate {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+/*********************************************
+ * Keyframes: Subtle Wiggle
+ *********************************************/
+@keyframes subtle-wiggle {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(1.5deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+/*********************************************
+ * Keyframes: Border Pulse
+ *********************************************/
+@keyframes border-pulse {
+    0% {
+        box-shadow: 0 0 0px rgba(233, 30, 99, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 10px rgba(233, 30, 99, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 0px rgba(233, 30, 99, 0.3);
+    }
+}
+
+/*********************************************
+ * شاشات أصغر من 400px (تحكم إضافي عند الحاجة)
+ *********************************************/
+@media (max-width: 400px) {
+    .custom-alert {
+        font-size: 0.95rem;
+        max-width: 95%; /* تقريباً تملأ الشاشة بشكل أفضل */
+    }
+}

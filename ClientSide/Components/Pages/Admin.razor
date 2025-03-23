@@ -1,0 +1,70 @@
+﻿@page "/Admin"
+@using ClientSide.Components.AdminComponents
+
+<div class="admin-container">
+    <!-- رأس الصفحة -->
+    <header class="admin-header">
+        <h2>لوحة التحكم</h2>
+    </header>
+
+    <!-- القائمة السفلية (أو العلوية) للتنقل بين التبويبات -->
+    <nav class="admin-nav">
+        <button @onclick="() => SetActiveTab(AdminTabs.Barbers)" 
+                class="nav-btn @(activeTab == AdminTabs.Barbers ? "active" : "")">
+            <span class="icon">&#128100;</span>
+            <span class="text">الحلاقون</span>
+        </button>
+        <button @onclick="() => SetActiveTab(AdminTabs.Orders)" 
+                class="nav-btn @(activeTab == AdminTabs.Orders ? "active" : "")">
+            <span class="icon">&#128197;</span>
+            <span class="text">الحجوزات</span>
+        </button>
+        <button @onclick="() => SetActiveTab(AdminTabs.Images)" 
+                class="nav-btn @(activeTab == AdminTabs.Images ? "active" : "")">
+            <span class="icon">&#128247;</span>
+            <span class="text">الصور</span>
+        </button>
+        <button @onclick="() => SetActiveTab(AdminTabs.AppManagement)" 
+                class="nav-btn @(activeTab == AdminTabs.AppManagement ? "active" : "")">
+            <span class="icon">&#9881;</span>
+            <span class="text">التطبيق</span>
+        </button>
+    </nav>
+
+    <!-- المحتوى (الكومبونينتس) -->
+    <main class="admin-content animate-fade-in">
+        @if (activeTab == AdminTabs.Barbers)
+        {
+            <BarbersManagement /> 
+        }
+        else if (activeTab == AdminTabs.Orders)
+        {
+             <OrdersManagement />
+         }
+        else if (activeTab == AdminTabs.Images)
+        {
+           <ImagesManagement />
+        }
+        else if (activeTab == AdminTabs.AppManagement)
+        {
+            <AppManagement /> 
+        }
+    </main>
+</div>
+
+@code {
+    private enum AdminTabs
+    {
+        Barbers,
+        Orders,
+        Images,
+        AppManagement
+    }
+
+    private AdminTabs activeTab = AdminTabs.Barbers;
+
+    private void SetActiveTab(AdminTabs tab)
+    {
+        activeTab = tab;
+    }
+}

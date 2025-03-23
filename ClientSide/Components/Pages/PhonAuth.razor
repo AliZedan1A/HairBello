@@ -1,0 +1,277 @@
+﻿@page "/PhonAuth"
+@using ClientSide.Services.Class
+@using ClientSide.Services.InterFace
+@using Domain.DataTransfareObject
+@using System.Text.RegularExpressions
+@inject IUserService _userservice
+@inject PhoneNumberService PhoneService
+@inject NavigationManager NavigationManager
+@inject AlertService _alert
+
+<style>
+    .page-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        animation: fadeIn 0.8s ease-in-out;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h3 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .input-box {
+        width: 80%;
+        padding: 0.8rem;
+        font-size: 1.2rem;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        outline: none;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 1rem;
+    }
+    .input-box:focus {
+        border-color: #0078D7;
+        box-shadow: 0 0 5px rgba(0, 120, 215, 0.5);
+    }
+
+    .save-button, .change-phone-button {
+        padding: 0.8rem 1.5rem;
+        font-size: 1.1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        margin: 0.5rem;
+        background-color: #28a745;
+        color: #fff;
+    }
+    .save-button:hover, .change-phone-button:hover {
+        background-color: #218838;
+        transform: scale(1.05);
+    }
+
+    .info-message {
+        margin-top: 1rem;
+        padding: 0.8rem;
+        background-color: #e7f3fe;
+        color: #31708f;
+        border: 1px solid #bce8f1;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="page-container">
+    @if (!isVerificationSent)
+    {
+            <!-- مرحلة إدخال رقم الهاتف والاسم مع خيارين -->
+            <h3>أدخل رقم هاتفك واسمك</h3>
+            <input @bind="UserInput" placeholder="مثال: 0591234567" type="tel" class="input-box" />
+            <input @bind="UserName" placeholder="أدخل اسمك" type="text" class="input-box" />
+            <div>
+                <button @onclick="SendValidation" class="save-button" disabled="@(!canSend)">
+                @if (_isLoading)
+                {
+                            <span>جاري الإرسال...</span>
+                }
+                else if (!canSend)
+                {
+                            <span>إرسال كود التحقق (@countdown)</span>
+                }
+                else
+                {
+                            <span>إرسال كود التحقق</span>
+                }
+                </button>
+                <button @onclick="UseOldCode" class="save-button">
+                    استخدام كود سابق
+                </button>
+            </div>
+    }
+    else
+    {
+            <!-- مرحلة إدخال الكود للتأكيد -->
+            <h3>أدخل الكود الذي وصلك على رقم الهاتف</h3>
+            <div style="margin-bottom:1rem;">
+                <span style="font-weight:bold;">رقم الهاتف:</span> @UserInput
+                <button @onclick="ChangePhone" class="change-phone-button">تغيير الرقم</button>
+            </div>
+            <input @bind="VerificationCode" placeholder="أدخل الكود" type="text" class="input-box" />
+            <div>
+                <button @onclick="CheckCode" class="save-button">تأكيد الكود</button>
+            </div>
+        @if (!string.IsNullOrWhiteSpace(infoMessage))
+        {
+                    <div class="info-message">
+                @infoMessage
+                    </div>
+        }
+    }
+</div>
+
+@code {
+    // المتغيرات الأساسية
+    private string UserInput = "";
+    private string UserName = "";
+    private string VerificationCode = "";
+    private bool isVerificationSent = false;
+
+    // متغيرات التايمر للتحكم في زر إرسال الكود الجديد
+    private int countdown = 60;
+    private bool canSend = true;
+    private System.Timers.Timer? resendTimer;
+    private bool _isLoading = false;
+    private string infoMessage = "";
+
+    // إرسال كود التحقق الجديد مع استخدام تحميل لمدة ثانيتين
+    private async Task SendValidation()
+    {
+        if (!canSend)
+        {
+            _alert.ShowAlert("يرجى الانتظار قبل إعادة إرسال الكود", AlertType.Error);
+            return;
+        }
+
+        // التحقق من صحة رقم الهاتف باستخدام Regex: يجب أن يبدأ بـ "05" ويكون 10 أرقام
+        if (!Regex.IsMatch(UserInput, @"^05\d{8}$"))
+        {
+            _alert.ShowAlert("رقم الهاتف يجب أن يبدأ بـ '05' ويحتوي على 10 أرقام", AlertType.Error);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(UserInput) || string.IsNullOrWhiteSpace(UserName))
+        {
+            _alert.ShowAlert("يجب إدخال رقم الهاتف والاسم.", AlertType.Error);
+            return;
+        }
+
+        // بدء استدعاء الـ API دون الانتظار فوراً
+        var apiTask = _userservice.SendValidtion(UserInput, UserName);
+
+        // إظهار حالة التحميل لمدة ثانيتين
+        _isLoading = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        _isLoading = false;
+
+        // الانتقال لمرحلة إدخال الكود
+        isVerificationSent = true;
+        infoMessage = "قد يستغرق وصول الكود من 2 إلى 20 ثانية. إذا لم يصلك الكود، يمكنك طلب كود جديد خلال دقيقة.";
+        StartTimer();
+        StateHasChanged();
+
+        // الانتظار لنتيجة الـ API
+        var res = await apiTask;
+        if (!res.IsSucceeded)
+        {
+            _alert.ShowAlert("فشل إرسال كود التحقق. الرجاء إعادة التسجيل.", AlertType.Error);
+            isVerificationSent = false;
+            infoMessage = "";
+            StateHasChanged();
+        }
+    }
+
+    // استخدام كود تحقق سابق (بدون إرسال كود جديد)
+    private void UseOldCode()
+    {
+        if (string.IsNullOrWhiteSpace(UserInput) || string.IsNullOrWhiteSpace(UserName))
+        {
+            _alert.ShowAlert("يجب إدخال رقم الهاتف والاسم أولاً.", AlertType.Error);
+            return;
+        }
+        isVerificationSent = true;
+        infoMessage = "قد يستغرق وصول الكود من 2 إلى 20 ثانية. إذا لم يصلك الكود، يمكنك طلب كود جديد خلال دقيقة.";
+        StateHasChanged();
+    }
+
+    // دالة التحقق من الكود المدخل وتسجيل الدخول
+    private async Task CheckCode()
+    {
+        if (string.IsNullOrWhiteSpace(VerificationCode))
+        {
+            _alert.ShowAlert("يرجى إدخال الكود.", AlertType.Error);
+            return;
+        }
+        var res = await _userservice.CheckCode(UserInput, VerificationCode);
+        if (res.IsSucceeded)
+        {
+            if (PhoneService.IsPhoneNumberSaved())
+            {
+                PhoneService.DeletePhoneNumber();
+            }
+            PhoneService.SavePhoneNumber(UserInput);
+            NavigationManager.NavigateTo("/", true);
+        }
+        else
+        {
+            _alert.ShowAlert("الكود غير صحيح. حاول مرة أخرى.", AlertType.Error);
+        }
+    }
+
+    // دالة تغيير رقم الهاتف والعودة للمرحلة الأولى
+    private void ChangePhone()
+    {
+        isVerificationSent = false;
+        infoMessage = "";
+    }
+
+    // دالة بدء التايمر (60 ثانية) لتعطيل إرسال كود التحقق الجديد
+    private void StartTimer()
+    {
+        canSend = false;
+        countdown = 60;
+        if (resendTimer != null)
+        {
+            resendTimer.Stop();
+            resendTimer.Dispose();
+        }
+        resendTimer = new System.Timers.Timer(1000);
+        resendTimer.Elapsed += TimerElapsed;
+        resendTimer.AutoReset = true;
+        resendTimer.Start();
+    }
+
+    private void TimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        if (countdown > 0)
+        {
+            countdown--;
+            InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            canSend = true;
+            resendTimer?.Stop();
+            resendTimer?.Dispose();
+            resendTimer = null;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (resendTimer != null)
+        {
+            resendTimer.Stop();
+            resendTimer.Dispose();
+        }
+    }
+}

@@ -1,0 +1,70 @@
+﻿@using ClientSide.Services.Class
+@inject AlertService AlertService
+
+@if (!string.IsNullOrEmpty(CurrentMessage))
+{
+    <div class="alert-container">
+        <div class="custom-alert @CurrentAlertCss @(HideAlert ? "hide-alert" : "")">
+            <button class="close-button" @onclick="OnCloseClick">X</button>
+            @CurrentMessage
+        </div>
+    </div>
+}
+
+@code {
+    private string? CurrentMessage;
+    private string CurrentAlertCss = "info";
+    private bool HideAlert;
+
+    protected override void OnInitialized()
+    {
+        AlertService.OnShow += ShowAlert;
+    }
+
+    private async void ShowAlert(string message, AlertType type)
+    {
+        HideAlert = false;
+        CurrentMessage = message;
+
+        // هنا يمكنك مستقبلاً التفريق حسب النوع لو أردت،
+        // لكن في المثال الحالي نستخدم نفس التصميم للجميع:
+        CurrentAlertCss = type switch
+        {
+            AlertType.Success => "success",
+            AlertType.Error => "error",
+            _ => "info"
+        };
+
+        StateHasChanged();
+
+        // نبقي التنبيه ظاهراً 5 ثوانٍ
+        await Task.Delay(5000);
+
+        // نبدأ أنيميشن الإخفاء
+        await StartHideAnimationAsync();
+    }
+
+    private async Task StartHideAnimationAsync()
+    {
+        HideAlert = true;
+        StateHasChanged();
+
+        // ننتظر ثانية لانتهاء أنيميشن التلاشي
+        await Task.Delay(1000);
+
+        // إزالة المحتوى تماماً
+        CurrentMessage = null;
+        StateHasChanged();
+    }
+
+    // زر الإغلاق اليدوي
+    private async Task OnCloseClick()
+    {
+        await StartHideAnimationAsync();
+    }
+
+    public void Dispose()
+    {
+        AlertService.OnShow -= ShowAlert;
+    }
+}
